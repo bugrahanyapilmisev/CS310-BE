@@ -2,6 +2,7 @@ package com.howudoin.services;
 
 import com.howudoin.models.User;
 import com.howudoin.repositories.UserRepository;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -66,8 +67,8 @@ public class UserServiceTest {
     public void testSendFriendRequest() {
         User fromUser = new User("Alice", "Smith", "alice@example.com", "password");
         User toUser = new User("Bob", "Brown", "bob@example.com", "password");
-        when(userRepository.findById("fromUserId")).thenReturn(Optional.of(fromUser));
-        when(userRepository.findById("toUserId")).thenReturn(Optional.of(toUser));
+        when(userRepository.findById(new ObjectId("adminId"))).thenReturn(Optional.of(fromUser));
+        when(userRepository.findById(new ObjectId("adminId"))).thenReturn(Optional.of(toUser));
         when(userRepository.save(toUser)).thenReturn(toUser);
 
         boolean success = userService.sendFriendRequest("fromUserId", "toUserId");
@@ -83,8 +84,8 @@ public class UserServiceTest {
         User friend = new User("Bob", "Brown", "bob@example.com", "password");
         user.getFriendRequests().add("friendId");
 
-        when(userRepository.findById("userId")).thenReturn(Optional.of(user));
-        when(userRepository.findById("friendId")).thenReturn(Optional.of(friend));
+        when(userRepository.findById(new ObjectId("adminId"))).thenReturn(Optional.of(user));
+        when(userRepository.findById(new ObjectId("adminId"))).thenReturn(Optional.of(friend));
         when(userRepository.save(user)).thenReturn(user);
         when(userRepository.save(friend)).thenReturn(friend);
 

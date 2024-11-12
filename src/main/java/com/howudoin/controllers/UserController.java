@@ -2,10 +2,13 @@ package com.howudoin.controllers;
 
 
 import com.howudoin.models.User;
+import com.howudoin.security.JwtUtil;
+import com.howudoin.security.LoginRequest;
 import com.howudoin.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +26,15 @@ public class UserController {
     @Autowired
     private PasswordEncoder passwordEncoder; // Inject PasswordEncoder
 
-
+    @GetMapping("/profile")
+    public ResponseEntity<?> getUserProfile() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName(); // Extract email from JWT
+        Optional<User> user = userService.findUserByEmail(email);
+        if (user.isPresent()) {
+            return ResponseEntity.ok(user.get());
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+    }
 
     // Register a new user
     @GetMapping("/register/{username}/{password}")
@@ -47,25 +58,30 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User user) {
-        try{
-            Optional<User> check_user = userService.loginUser(user);
-
-            return ResponseEntity.ok(Map.of(
-                    "message", "Login successful",
-                    "userId", check_user.get().getId(),
-                    "email", check_user.get().getEmail()
-            ));
-
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        try {
+            Optional<User> userOpt = userService.loginUser(new User(null, null, loginRequest.getEmail(), loginRequest.getPassword()));
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                String token = new JwtUtil().generateToken(user.getEmail()); // Generate JWT token
+                return ResponseEntity.ok(Map.of(
+                        "message", "Login successful",
+                        "token", token
+                ));
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
-        catch (IllegalArgumentException e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
-        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
     }
 
     // Send a friend request
     @PostMapping("/friends/add")
-    public ResponseEntity<String> sendFriendRequest(@RequestParam String fromUserId, @RequestParam String toUserId) {
+    public ResponseEntity<String> sendFriendRequest(@RequestBody Map<String, String> payload) {
+        String fromUserId = payload.get("fromUserId");
+        String toUserId = payload.get("toUserId");
+        System.out.println(fromUserId);
+        System.out.println(toUserId);
         boolean success = userService.sendFriendRequest(fromUserId, toUserId);
         if (success) {
             return ResponseEntity.ok("Friend request sent successfully.");
@@ -75,8 +91,10 @@ public class UserController {
 
     // Accept a friend request
     @PostMapping("/friends/accept")
-    public ResponseEntity<String> acceptFriendRequest(@RequestParam String userId, @RequestParam String friendId) {
-        boolean success = userService.acceptFriendRequest(userId, friendId);
+    public ResponseEntity<String> acceptFriendRequest(@RequestBody Map<String, String> payload) {
+        String fromUserId = payload.get("fromUserId");
+        String toUserId = payload.get("toUserId");
+        boolean success = userService.acceptFriendRequest(fromUserId, toUserId);
         if (success) {
             return ResponseEntity.ok("Friend request accepted.");
         }

@@ -8,21 +8,21 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private final String SECRET_KEY = "your_secret_key"; // Replace with a strong key
+    private final String SECRET_KEY = "mqWkv1k15hRPUGAb1ZqxSY7gQdwc5JuXBfSaRIIMvwE="; // Replace with a strong key
     private final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 hours
 
-    public String generateToken(String userId) {
+    public String generateToken(String username) {
         return Jwts.builder()
-                .setSubject(userId)
+                .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY.getBytes()) // Use the new key
                 .compact();
     }
 
-    public String extractUserId(String token) {
+    public String extractUsername(String token) {
         return Jwts.parser()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(SECRET_KEY.getBytes())
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
@@ -30,11 +30,12 @@ public class JwtUtil {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
+            Jwts.parser().setSigningKey(SECRET_KEY.getBytes()).parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             e.printStackTrace();
             return false;
         }
     }
+
 }

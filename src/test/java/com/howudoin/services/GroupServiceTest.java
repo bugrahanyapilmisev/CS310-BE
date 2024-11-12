@@ -4,6 +4,7 @@ import com.howudoin.models.Group;
 import com.howudoin.models.User;
 import com.howudoin.repositories.GroupRepository;
 import com.howudoin.repositories.UserRepository;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,7 +35,7 @@ public class GroupServiceTest {
     public void testCreateGroup() {
         // Arrange
         User admin = new User("Alice", "Smith", "alice@example.com", "password");
-        when(userRepository.findById("adminId")).thenReturn(Optional.of(admin));
+        when(userRepository.findById(new ObjectId("adminId"))).thenReturn(Optional.of(admin));
 
         Group group = new Group("Study Group", "adminId", new ArrayList<>(List.of("member1", "member2", "adminId")));
         when(groupRepository.save(any(Group.class))).thenReturn(group);

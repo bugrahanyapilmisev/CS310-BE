@@ -2,9 +2,12 @@ package com.howudoin.services;
 
 import com.howudoin.models.User;
 import com.howudoin.repositories.UserRepository;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,11 +64,17 @@ public class UserService {
 
     // Send a friend request
     public boolean sendFriendRequest(String fromUserId, String toUserId) {
-        Optional<User> fromUserOpt = userRepository.findById(fromUserId);
-        Optional<User> toUserOpt = userRepository.findById(toUserId);
+        ObjectId fromId = new ObjectId(fromUserId);
+        ObjectId toId = new ObjectId(toUserId);
+
+        Optional<User> fromUserOpt = userRepository.findById(fromId);
+        Optional<User> toUserOpt = userRepository.findById(toId);
 
         if (fromUserOpt.isPresent() && toUserOpt.isPresent()) {
             User toUser = toUserOpt.get();
+            if (toUser.getFriendRequests() == null) {
+                toUser.setFriendRequests(new ArrayList<>());
+            }
             if (!toUser.getFriendRequests().contains(fromUserId)) {
                 toUser.getFriendRequests().add(fromUserId);
                 userRepository.save(toUser);
@@ -77,12 +86,15 @@ public class UserService {
 
     // Accept a friend request
     public boolean acceptFriendRequest(String userId, String friendId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        Optional<User> friendOpt = userRepository.findById(friendId);
+        ObjectId fromId = new ObjectId(userId);
+        ObjectId toId = new ObjectId(friendId);
 
-        if (userOpt.isPresent() && friendOpt.isPresent()) {
-            User user = userOpt.get();
-            User friend = friendOpt.get();
+        Optional<User> fromUserOpt = userRepository.findById(fromId);
+        Optional<User> toUserOpt = userRepository.findById(toId);
+
+        if (fromUserOpt.isPresent() && toUserOpt.isPresent()) {
+            User user = fromUserOpt.get();
+            User friend = toUserOpt.get();
 
             if (user.getFriendRequests().remove(friendId)) {
                 user.getFriends().add(friendId);

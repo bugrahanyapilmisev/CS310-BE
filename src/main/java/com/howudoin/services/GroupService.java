@@ -4,6 +4,7 @@ import com.howudoin.models.Group;
 import com.howudoin.models.User;
 import com.howudoin.repositories.GroupRepository;
 import com.howudoin.repositories.UserRepository;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,10 @@ public class GroupService {
 
     // Create a new group
     public Group createGroup(String groupName, String adminId, List<String> memberIds) {
-        Optional<User> admin = userRepository.findById(adminId);
+        ObjectId adminID = new ObjectId(adminId);
+
+
+        Optional<User> admin = userRepository.findById(adminID);
         if (admin.isPresent()) {
             // Ensure the members list is mutable
             List<String> members = new ArrayList<>(memberIds);

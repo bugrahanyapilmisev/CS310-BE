@@ -3,14 +3,14 @@ package com.howudoin.models;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-
+import org.bson.types.ObjectId;
 import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "users")
 public class User {
     @Id
-    private String id;
+    private ObjectId id;
     private String firstName;
     private String lastName;
 
@@ -32,11 +32,11 @@ public class User {
     }
 
     // Getters and Setters
-    public String getId() {
+    public ObjectId getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(ObjectId id) {
         this.id = id;
     }
 
