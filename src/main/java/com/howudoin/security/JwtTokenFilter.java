@@ -2,6 +2,7 @@ package com.howudoin.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,9 @@ import java.io.IOException;
 @Component
 public class JwtTokenFilter extends OncePerRequestFilter {
 
+    @Autowired
+    private TokenBlacklistService tokenBlacklistService;
+
     private final String SECRET_KEY = "mqWkv1k15hRPUGAb1ZqxSY7gQdwc5JuXBfSaRIIMvwE=";
 
     @Override
@@ -27,6 +31,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             String token = authorizationHeader.substring(7);
 
             try {
+                // Check if the token is blacklisted
+                if (tokenBlacklistService.isBlacklisted(token)) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("This token has been invalidated.");
+                    return;
+                }
+
                 Claims claims = Jwts.parser()
                         .setSigningKey(SECRET_KEY.getBytes())
                         .parseClaimsJws(token)
@@ -34,7 +45,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
                 String username = claims.getSubject();
                 if (username != null) {
-                    // Set authentication in SecurityContext
                     JwtAuthenticationToken authentication = new JwtAuthenticationToken(username, null, null);
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -46,9 +56,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             }
         }
 
-        // Proceed with the filter chain
         filterChain.doFilter(request, response);
     }
-
-
 }
+

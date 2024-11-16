@@ -1,5 +1,6 @@
 package com.howudoin.models;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -9,27 +10,33 @@ import java.util.List;
 @Document(collection = "groups")
 public class Group {
     @Id
-    private String id;
+    private ObjectId id;
     private String name; // Group name
-    private String adminId; // ID of the user who created the group
-    private List<String> members = new ArrayList<>(); // List of user IDs who are members of the group
-    private List<String> messages = new ArrayList<>(); // List of message IDs associated with this group
+    private List<ObjectId> members = new ArrayList<>(); // List of user IDs who are members of the group
+    private List<Message> messages = new ArrayList<>(); // List of message IDs associated with this group
 
     // Constructors
     public Group() {}
 
-    public Group(String name, String adminId, List<String> members) {
+    public Group(String name, List<ObjectId> members2) {
         this.name = name;
-        this.adminId = adminId;
-        this.members = members;
+        this.members.addAll(members2);
+    }
+
+
+    public boolean isPresent(){
+        if(id != null && name != null ){
+            return true;
+        }
+        return false;
     }
 
     // Getters and Setters
-    public String getId() {
-        return id;
+    public ObjectId getId() {
+        return this.id;
     }
 
-    public void setId(String id) {
+    public void setId(ObjectId id) {
         this.id = id;
     }
 
@@ -41,27 +48,24 @@ public class Group {
         this.name = name;
     }
 
-    public String getAdminId() {
-        return adminId;
-    }
 
-    public void setAdminId(String adminId) {
-        this.adminId = adminId;
-    }
-
-    public List<String> getMembers() {
+    public List<ObjectId> getMembers() {
         return members;
     }
 
-    public void setMembers(List<String> members) {
+    public void addMember(ObjectId memberId) {
+        members.add(memberId);
+    }
+
+    public void setMembers(List<ObjectId> members) {
         this.members = members;
     }
 
-    public List<String> getMessages() {
+    public List<Message> getMessages() {
         return messages;
     }
 
-    public void setMessages(List<String> messages) {
-        this.messages = messages;
+    public void addMessages(Message messages) {
+        this.messages.add(messages);
     }
 }

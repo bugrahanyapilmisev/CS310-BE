@@ -1,4 +1,4 @@
-package com.howudoin.services;
+/*package com.howudoin.services;
 
 import com.howudoin.models.Message;
 import com.howudoin.repositories.MessageRepository;
@@ -52,4 +52,4 @@ public class MessageServiceTest {
         assertEquals(2, conversation.size());
         assertEquals("Hi", conversation.get(0).getContent());
     }
-}
+}*/

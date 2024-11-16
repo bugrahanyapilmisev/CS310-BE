@@ -12,7 +12,7 @@ public interface UserRepository extends MongoRepository<User,ObjectId> {
     Optional<User> findByEmail(String email);
 
     // Find all users by a list of user IDs (useful for fetching friends)
-    List<User> findAllByIdIn(List<String> ids);
+    List<User> findAllByIdIn(List<ObjectId> ids);
 
     // Find all users with a specific name (case-sensitive)
     List<User> findByFirstName(String firstName);
@@ -20,5 +20,5 @@ public interface UserRepository extends MongoRepository<User,ObjectId> {
     // Find users who have pending friend requests from a specific user
     List<User> findByFriendRequestsContaining(String userId);
 
-    Optional<User> findById(ObjectId email);
+    Optional<User> findById(ObjectId id);
 }

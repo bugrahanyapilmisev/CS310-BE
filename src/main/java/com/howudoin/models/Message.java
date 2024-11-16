@@ -12,17 +12,24 @@ public class Message {
     private String senderId; // ID of the user who sent the message
     private String recipientId; // Can be a user ID (private message) or group ID
     private String content;
-    private boolean isGroupMessage; // True if the message is for a group
+    private String groupId = null;// True if the message is for a group
     private LocalDateTime timestamp;
 
     // Constructors
     public Message() {}
 
-    public Message(String senderId, String recipientId, String content, boolean isGroupMessage, LocalDateTime timestamp) {
+    public Message(String senderId, String recipientId, String content, String isGroupMessage, LocalDateTime timestamp) {
         this.senderId = senderId;
         this.recipientId = recipientId;
         this.content = content;
-        this.isGroupMessage = isGroupMessage;
+        this.groupId = isGroupMessage;
+        this.timestamp = timestamp;
+    }
+
+    public Message(String senderId, String content, String isGroupMessage, LocalDateTime timestamp) {
+        this.senderId = senderId;
+        this.content = content;
+        this.groupId = isGroupMessage;
         this.timestamp = timestamp;
     }
 
@@ -59,12 +66,12 @@ public class Message {
         this.content = content;
     }
 
-    public boolean isGroupMessage() {
-        return isGroupMessage;
+    public String isGroupMessage() {
+        return this.groupId;
     }
 
-    public void setGroupMessage(boolean groupMessage) {
-        isGroupMessage = groupMessage;
+    public void setGroupMessage(String groupMessage) {
+        this.groupId = groupMessage;
     }
 
     public LocalDateTime getTimestamp() {

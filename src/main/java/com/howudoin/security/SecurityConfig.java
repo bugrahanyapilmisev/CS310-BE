@@ -26,7 +26,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless JWT authentication
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/","/api/users/register", "/api/users/login").permitAll() // Public endpoints
+                        .requestMatchers("/users/logout","/users/register", "/users/login","/").permitAll() // Public endpoints
                         .anyRequest().authenticated() // Secure all other endpoints
                 )
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
