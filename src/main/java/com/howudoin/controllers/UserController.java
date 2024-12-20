@@ -117,37 +117,27 @@ public class UserController {
         if (user.isPresent()) {
             // Fetch pending friend requests as User objects
             List<User> pendingRequests = userService.getFriendRequests(user);
-
+            //this part is extra endpoint, that is not mentioned in word file for guide
             return ResponseEntity.ok(pendingRequests);
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
     }
 
-    @PostMapping("/friends/respond")
+    @PostMapping("/friends/accept")
     public ResponseEntity<?> respondToFriendRequest(@RequestBody Map<String, String> payload) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User userOptional = userService.findUserByEmail(email);
         userOptional = userService.getUser(userOptional.getId());
         String toUserId = payload.get("toUserId");
-        String response = payload.get("response");
 
         if (userOptional.getId().equals(new ObjectId(toUserId))) {
             return ResponseEntity.badRequest().body("You cannot add yourself as your friend.");
         }
-
-        if ("accept".equals(response)) {
-            boolean success = userService.acceptFriendRequest(userOptional, toUserId);
-            if (success) {
-                System.out.println("Friend request accepted successfully.");
-                return ResponseEntity.ok("Friend request accepted.");
-            }
-        } else if ("reject".equals(response)) {
-            boolean success = userService.rejectFriendRequest(userOptional, toUserId);
-            if (success) {
-                System.out.println("Friend request rejected successfully.");
-                return ResponseEntity.ok("Friend request rejected.");
-            }
+        boolean success = userService.acceptFriendRequest(userOptional, toUserId);
+        if (success) {
+            return ResponseEntity.ok("Friend request accepted.");
         }
+
         return ResponseEntity.badRequest().body("Invalid request or operation failed.");
     }
 

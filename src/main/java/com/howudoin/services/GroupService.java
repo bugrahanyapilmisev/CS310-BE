@@ -88,7 +88,10 @@ public class GroupService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user_sender = userService.findUserByEmail(email);
         user_sender = userService.getUser(user_sender.getId());
-
+        List<ObjectId> members = groupOpt.get().getMembers();
+        if(!members.contains(user_sender.getId())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You are not member of this group");
+        }
         if(groupOpt.isPresent()) {
             Group group = groupOpt.get();
             List<ObjectId> memberIds = group.getMembers();

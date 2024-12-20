@@ -94,6 +94,11 @@ public class GroupController {
     // Retrieve group message history
     @GetMapping("/{groupId}/messages")
     public ResponseEntity<?> getGroupMessages(@PathVariable String groupId) {
+        Group group = groupService.getGroup(new ObjectId(groupId));
+        if (group == null) {
+            return ResponseEntity.ok("The group with that group id is not found");
+        }
+
         List<Message> messages = groupService.getGroupMessages(groupId);
         if(messages == null){
             if(messages.isEmpty()){
@@ -101,7 +106,8 @@ public class GroupController {
             }
             return ResponseEntity.badRequest().body(messages);
         }
-        return ResponseEntity.ok("The group with that group id is not found");
+        return ResponseEntity.ok(messages);
+
 
     }
 }

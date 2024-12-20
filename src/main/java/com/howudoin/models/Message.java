@@ -12,7 +12,7 @@ public class Message {
     private String senderId; // ID of the user who sent the message
     private String recipientId; // Can be a user ID (private message) or group ID
     private String content;
-    private String groupId = null;// True if the message is for a group
+    private String groupId = null;// exists if the message is for a group
     private LocalDateTime timestamp;
 
     // Constructors
