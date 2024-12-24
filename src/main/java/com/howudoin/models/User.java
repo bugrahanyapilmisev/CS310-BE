@@ -7,10 +7,13 @@ import org.bson.types.ObjectId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.howudoin.serializer.ObjectIdSerializer;
 
 @Document(collection = "users")
 public class User {
     @Id
+    @JsonSerialize(using = ObjectIdSerializer.class)
     private ObjectId id;
     private String firstName;
     private String lastName;

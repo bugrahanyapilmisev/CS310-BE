@@ -86,4 +86,23 @@ public class MessageService {
   }
 
 
+    public ResponseEntity<?> getspecialconversation(User user, String recipientId) {
+        Map<String,Object> map = new HashMap<>();
+        User friend = userService.getUser(new ObjectId(recipientId));
+        map.put("User Name", user.getFirstName());
+        map.put("Friend Name", friend.getLastName());
+        List<Message> messages_sent_inperson = new ArrayList<>();
+        List<Message> messages_received_inperson = new ArrayList<>();
+        for(Message message : user.get_messages()) {
+            if(message.getSenderId().equals(user.getId().toHexString()) && message.getRecipientId().equals(recipientId)) {
+                messages_sent_inperson.add(message);
+            }
+            else if(message.getSenderId().equals(friend.getId().toHexString()) && message.getRecipientId().equals(user.getId().toHexString())) {
+                messages_received_inperson.add(message);
+            }
+        }
+        map.put("messages sent by user", messages_sent_inperson);
+        map.put("messages sent by friend", messages_received_inperson);
+        return ResponseEntity.ok(map);
+    }
 }

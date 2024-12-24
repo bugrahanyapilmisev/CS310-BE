@@ -14,10 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/users")
@@ -50,6 +47,7 @@ public class UserController {
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
             User createdUser = userService.registerUser(user);
+
             return ResponseEntity.ok(createdUser);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
@@ -96,7 +94,10 @@ public class UserController {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findUserByEmail(email);
         user = userService.getUser(user.getId());
-        String toUserId = payload.get("toUserId");
+        String mail = payload.get("email");
+        User user2 = userService.findUserByEmail(mail);
+        System.out.println(user2.getId());
+        String toUserId = new String(user2.getId().toString());
         if (user.getId().equals(new ObjectId(toUserId))) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You can not add yourself as friend");
         } else {
@@ -128,8 +129,10 @@ public class UserController {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User userOptional = userService.findUserByEmail(email);
         userOptional = userService.getUser(userOptional.getId());
-        String toUserId = payload.get("toUserId");
-
+        String mail = payload.get("email");
+        User user2 = userService.findUserByEmail(mail);
+        System.out.println(user2.getId());
+        String toUserId = new String(user2.getId().toString());
         if (userOptional.getId().equals(new ObjectId(toUserId))) {
             return ResponseEntity.badRequest().body("You cannot add yourself as your friend.");
         }

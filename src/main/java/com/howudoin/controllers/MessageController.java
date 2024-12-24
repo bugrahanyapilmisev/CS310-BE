@@ -26,6 +26,7 @@ public class MessageController {
     // Send a message
     @PostMapping("/send")
     public ResponseEntity<?> sendMessage(@RequestBody Map<String, String> payload) {
+
         String recipientId = payload.get("recipientId");
         String content = payload.get("content");
         String isGroupMessage = "";
@@ -56,10 +57,16 @@ public class MessageController {
 
 
     @GetMapping("")
-    public ResponseEntity<?> getAllMessages() {
+    public ResponseEntity<?> getAllMessages(@RequestParam(required = false) String recipientId) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findUserByEmail(email);
         user = userService.getUser(user.getId());
-        return messageService.getConversation(user);
+        if(recipientId != null && !recipientId.isEmpty()) {
+            return messageService.getspecialconversation(user,recipientId);
+        }
+        else{
+            return messageService.getConversation(user);
+        }
+
     }
 }
