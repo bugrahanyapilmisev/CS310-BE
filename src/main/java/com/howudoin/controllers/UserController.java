@@ -69,7 +69,8 @@ public class UserController {
                 String token = new JwtUtil().generateToken(user.getEmail()); // Generate JWT token
                 return ResponseEntity.ok(Map.of(
                         "message", "Login successful",
-                        "token", token
+                        "token", token,
+                        "userid", user.getId().toString()
                 ));
             }
         } catch (IllegalArgumentException e) {
@@ -161,6 +162,21 @@ public class UserController {
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUsers(@RequestParam("query") String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("email cannot be empty.");
+        }
+        try {
+            // Call the userService to perform the search
+            User user_found = userService.findUserByEmail(email);
+            return ResponseEntity.ok(user_found);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while searching for users.");
+        }
+    }
+
 
 
 }

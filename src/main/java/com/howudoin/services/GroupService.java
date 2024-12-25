@@ -61,25 +61,41 @@ public class GroupService {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
     }
     // Add a member to an existing group
-    public boolean addMemberToGroup(Group group, String memberId) {
+    public boolean addMemberToGroup(Group group, String memberEmail) {
         if (group.isPresent()) {
-            User new_user = userService.getUser(new ObjectId(memberId));
+            User new_user = userService.findUserByEmail(memberEmail);
             if (!group.getMembers().contains(new_user.getId())) {
-                // Ensure the list is mutable before modifying
+                ObjectId group_id = group.getId();
+
+                // Update the group's members list
                 group.getMembers().add(new_user.getId());
-                new_user.getGroups().add(group);
-                userService.save(new_user);
                 groupRepository.save(group);
-                for(ObjectId member : group.getMembers()) {
-                    User user = userService.getUser(member);
-                    user.changeGroup(group);
-                    userService.save(user);
+
+                // Reload the User object to ensure it contains all current data
+                new_user = userService.getUser(new_user.getId());
+
+                // Add the group to the user's groups list without overwriting the field
+                if (!new_user.getGroups().contains(group)) {
+                    new_user.getGroups().add(group);
                 }
+
+                // Save the updated user back to the database
+                userService.save(new_user);
+
+                // Ensure all group members are updated with the group changes
+                for (ObjectId memberId : group.getMembers()) {
+                    User member = userService.getUser(memberId);
+                    member.changeGroup(group); // Update group information in the member
+                    userService.save(member);
+                }
+
                 return true;
             }
         }
         return false;
     }
+
+
 
     public ResponseEntity<?> sendMessage(String groupid_str,String content) {
         ObjectId groupId = new ObjectId(groupid_str);
@@ -107,7 +123,7 @@ public class GroupService {
                 userService.save(user);
             }
             messageService.save(message);
-            return new ResponseEntity<>(Map.of("success", message), HttpStatus.OK);
+            return new ResponseEntity<>(Map.of("success", message,"sender mail",user_sender.getEmail()), HttpStatus.OK);
 
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("This group does not exist");
@@ -116,15 +132,21 @@ public class GroupService {
 
 
     // Retrieve group members
-    public List<User> getGroupMembers(ObjectId groupId) {
+    public List<Map<String,String>> getGroupMembers(ObjectId groupId) {
         Optional<Group> groupOpt = groupRepository.findById(groupId);
 
         if (groupOpt.isPresent()) {
             Group group = groupOpt.get();
             List<ObjectId> members = group.getMembers();
-            List<User> users = new ArrayList<>();
+            List<Map<String,String>> users = new ArrayList<>();
+
             for(ObjectId member : members) {
-                users.add(userService.getUser(member));
+                Map<String,String> map = new HashMap<>();
+                User user = userService.getUser(member);
+                map.put("Email",user.getEmail());
+                map.put("First Name",user.getFirstName());
+                map.put("Last Name",user.getLastName());
+                users.add(map);
             }
             return users;
         }
@@ -132,15 +154,44 @@ public class GroupService {
     }
 
     // Retrieve group message history
-    public List<Message> getGroupMessages(String groupId) {
+    public List<Map<String, Object>> getGroupMessages(String groupId) {
         Optional<Group> groupOpt = groupRepository.findById(groupId);
-        if(groupOpt.isPresent()){
-            return groupOpt.map(Group::getMessages).orElse(null);
+        if (groupOpt.isPresent()) {
+            List<Map<String, Object>> messages = new ArrayList<>();
+            List<Message> groupMessages = groupOpt.get().getMessages();
+            for (Message message : groupMessages) {
+                String senderEmail = userService.findUserById(new ObjectId(message.getSenderId()))
+                        .map(User::getEmail)
+                        .orElse("Unknown Sender");
+
+                Map<String, Object> messageMap = new HashMap<>();
+                messageMap.put("id", message.getId());
+                messageMap.put("senderId", message.getSenderId());
+                messageMap.put("senderEmail", senderEmail);
+                messageMap.put("content", message.getContent());
+                messageMap.put("timestamp", message.getTimestamp().toString());
+
+                messages.add(messageMap);
+            }
+            return messages;
         }
         return null;
     }
 
     public Group getGroup(ObjectId groupId) {
         return  groupRepository.findById(groupId).get();
+    }
+
+    public List<Map<String,String>> getGroups(String userid) {
+        List<Group> groups = userService.findUserById(new ObjectId(userid)).get().getGroups();;
+        List<Map<String,String>> groupinfos = new ArrayList<>();
+        for(Group group : groups) {
+            Map<String,String> map = new HashMap<>();
+            map.put("name", group.getName());
+            map.put("id",group.getId().toHexString());
+            groupinfos.add(map);
+        }
+        return groupinfos;
+
     }
 }

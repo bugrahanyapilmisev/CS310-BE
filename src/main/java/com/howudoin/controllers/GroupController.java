@@ -64,12 +64,12 @@ public class GroupController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Group not found.");
         }
         // Get the memberID from the payload
-        String memberID = payload.get("new_memberID");
-        if (memberID == null || memberID.isEmpty()) {
-            return ResponseEntity.badRequest().body("Member ID must be provided.");
+        String member_email = payload.get("new_member_email");
+        if (member_email == null || member_email.isEmpty()) {
+            return ResponseEntity.badRequest().body("Member email must be provided.");
         }
         // Attempt to add the member to the group
-        boolean success = groupService.addMemberToGroup(group, memberID);
+        boolean success = groupService.addMemberToGroup(group, member_email);
         if (success) {
             return ResponseEntity.ok("Member added to group successfully.");
         } else {
@@ -83,12 +83,25 @@ public class GroupController {
         String message = payload.get("message");
         return groupService.sendMessage(groupId, message);
     }
+
+
+
     // Retrieve group members
     @GetMapping("/{group_id}/members")
-    public ResponseEntity<List<User>> getGroupMembers(@PathVariable("group_id") String groupId) {
+    public ResponseEntity<List<Map<String,String>>> getGroupMembers(@PathVariable("group_id") String groupId) {
 
-        List<User> members = groupService.getGroupMembers(new ObjectId(groupId));
+        List<Map<String,String>> members = groupService.getGroupMembers(new ObjectId(groupId));
         return ResponseEntity.ok(members);
+    }
+
+    @GetMapping("")
+    public ResponseEntity<List<Map<String,String>>> getGroupsofTheUser(@RequestParam(required = false) String userid) {
+        if(userid == null || userid.isEmpty()){
+            String email = SecurityContextHolder.getContext().getAuthentication().getName(); // Extract email from JWT
+            userid = userService.findUserByEmail(email).getId().toString();
+        }
+        List<Map<String,String>> groups = groupService.getGroups(userid);
+        return ResponseEntity.ok(groups);
     }
 
     // Retrieve group message history
@@ -96,18 +109,11 @@ public class GroupController {
     public ResponseEntity<?> getGroupMessages(@PathVariable String groupId) {
         Group group = groupService.getGroup(new ObjectId(groupId));
         if (group == null) {
-            return ResponseEntity.ok("The group with that group id is not found");
+            return ResponseEntity.badRequest().body("The group with that group id is not found");
         }
 
-        List<Message> messages = groupService.getGroupMessages(groupId);
-        if(messages == null){
-            if(messages.isEmpty()){
-                return ResponseEntity.badRequest().body("No messages found.");
-            }
-            return ResponseEntity.badRequest().body(messages);
-        }
+        List<Map<String, Object>> messages = groupService.getGroupMessages(groupId);
         return ResponseEntity.ok(messages);
-
-
     }
+
 }

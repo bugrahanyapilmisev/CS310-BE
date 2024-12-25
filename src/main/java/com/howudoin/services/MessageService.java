@@ -103,6 +103,7 @@ public class MessageService {
         }
         map.put("messages sent by user", messages_sent_inperson);
         map.put("messages sent by friend", messages_received_inperson);
+        map.put("senderId",user.getId().toHexString());
         return ResponseEntity.ok(map);
     }
 }

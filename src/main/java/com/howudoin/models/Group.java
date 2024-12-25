@@ -68,4 +68,5 @@ public class Group {
     public void addMessages(Message messages) {
         this.messages.add(messages);
     }
+
 }
